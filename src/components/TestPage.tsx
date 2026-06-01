@@ -135,12 +135,17 @@ export default function TestPage() {
           setTimeout(() => reject(new Error('Timeout saving result')), 20000)
         );
         
-        const { data } = await Promise.race([savePromise, timeoutPromise]);
-        if (data && data.length > 0) {
+        const { data, error } = await Promise.race([savePromise, timeoutPromise]);
+        
+        if (error) {
+          console.error('Supabase save error:', error);
+          alert('Gagal menyimpan hasil kuis ke database: ' + (error.message || 'Unknown error'));
+        } else if (data && data.length > 0) {
           dispatch({ type: 'ADD_RESULT', payload: data[0] as TestResult });
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to save test result or timeout:', err);
+        alert('Gagal menyimpan hasil kuis (Timeout/Network): ' + (err?.message || ''));
       }
     }
 

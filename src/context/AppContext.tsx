@@ -59,9 +59,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   /** Sign out from Supabase */
   const logout = async () => {
-    await supabase.auth.signOut();
-    dispatch({ type: 'SET_USER', payload: null });
-    navigate('home');
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      dispatch({ type: 'SET_USER', payload: null });
+      navigate('home');
+    }
   };
 
   // On mount: check if user is already logged in via Supabase session
@@ -84,19 +89,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
           };
           dispatch({ type: 'SET_USER', payload: user });
 
-          // Load test results
-          const { data } = await getTestResults(session.user.id);
-          if (data) {
-            const results: TestResult[] = data.map((r: Record<string, unknown>) => ({
-              id: r.id as string,
-              user_id: r.user_id as string,
-              af_level: r.af_level as string,
-              score: r.score as number,
-              passed: r.passed as boolean,
-              created_at: r.created_at as string,
-            }));
-            dispatch({ type: 'SET_RESULTS', payload: results });
-          }
+          // Load test results in the background so it doesn't block the loading screen
+          getTestResults(session.user.id).then(({ data, error }) => {
+            if (error) {
+              console.error("Error fetching test results:", error);
+              return;
+            }
+            if (data) {
+              const results: TestResult[] = data.map((r: Record<string, unknown>) => ({
+                id: r.id as string,
+                user_id: r.user_id as string,
+                af_level: r.af_level as string,
+                score: r.score as number,
+                passed: r.passed as boolean,
+                created_at: r.created_at as string,
+              }));
+              dispatch({ type: 'SET_RESULTS', payload: results });
+            }
+          }).catch(err => console.error("Exception fetching test results:", err));
         }
       } catch (err) {
         console.error("Unexpected error during initAuth:", err);
@@ -119,18 +129,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
           };
           dispatch({ type: 'SET_USER', payload: user });
           
-          // reload test results on sign in
-          const { data } = await getTestResults(session.user.id);
-          if (data) {
-             const results: TestResult[] = data.map((r: Record<string, unknown>) => ({
-              id: r.id as string,
-              user_id: r.user_id as string,
-              af_level: r.af_level as string,
-              score: r.score as number,
-              passed: r.passed as boolean,
-              created_at: r.created_at as string,
-            }));
-            dispatch({ type: 'SET_RESULTS', payload: results });
+          // reload test results on sign in with timeout
+          const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout fetching results')), 10000)
+          );
+          
+          try {
+            const { data } = await Promise.race([getTestResults(session.user.id), timeoutPromise]);
+            if (data) {
+              const results: TestResult[] = data.map((r: Record<string, unknown>) => ({
+                id: r.id as string,
+                user_id: r.user_id as string,
+                af_level: r.af_level as string,
+                score: r.score as number,
+                passed: r.passed as boolean,
+                created_at: r.created_at as string,
+              }));
+              dispatch({ type: 'SET_RESULTS', payload: results });
+            }
+          } catch (err) {
+            console.error("Timeout or error on auth state change:", err);
           }
         } else if (event === 'SIGNED_OUT') {
           dispatch({ type: 'SET_USER', payload: null });
