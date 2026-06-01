@@ -1,0 +1,54 @@
+/* ============================================================
+   index.css — Ruang Newton Global Styles
+   ============================================================ */
+
+@import "tailwindcss";
+
+/* ── Google Fonts ─────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+@theme {
+  --color-primary: #40E0D0;
+  --color-secondary: #5BD787;
+  --color-tertiary: #AFEEEE;
+  --color-accent: #FFD6D4;
+}
+
+/* Force dark mode to ONLY trigger if we explicitly add .dark class, effectively disabling OS dark mode */
+@variant dark (&:where(.dark, .dark *));
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #F8FAFC;
+  color: #1E293B;
+  min-height: 100vh;
+  overflow-x: hidden;
+  /* Soft ambient background */
+  background-image:
+    radial-gradient(ellipse at 10% 10%, rgba(64, 224, 208, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 90%, rgba(91, 215, 135, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(255, 214, 212, 0.08) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: 'Outfit', sans-serif;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(64, 224, 208, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover { background: #40E0D0; }
+
+/* ── Animations ───────────────────────────────────────────── */
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: slideUpFade 0.5s ease forwards;
+}
