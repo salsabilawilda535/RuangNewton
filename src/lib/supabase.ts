@@ -15,11 +15,16 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /**
  * Register user baru dengan email + password.
+ * Menyertakan URL redirect untuk verifikasi email.
  */
-export async function registerUser(email: string, password: string) {
+export async function registerUser(email: string, password: string, redirectTo?: string) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      // Mengarahkan ke domain Vercel Anda saat verifikasi email
+      emailRedirectTo: redirectTo || import.meta.env.VITE_SITE_URL || 'https://ruang-newton.vercel.app',
+    }
   });
   return { data, error };
 }

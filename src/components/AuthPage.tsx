@@ -22,6 +22,7 @@ export default function AuthPage() {
   const [alert, setAlert] = useState<AlertType>(null);
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showVerificationPopup, setShowVerificationPopup] = useState(false);
 
   // Login form state
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
@@ -108,13 +109,8 @@ export default function AuthPage() {
           name: regForm.username.trim(),
         });
 
-        setAlert({ type: 'success', message: 'Register berhasil! Silakan login sekarang.' });
-        setTimeout(() => {
-          setTab('login');
-          setLoginForm({ email: regForm.email, password: '' });
-          setAlert(null);
-        }, 1800);
-        setRegForm({ username: '', email: '', password: '', confirmPassword: '' });
+        // Tampilkan popup verifikasi
+        setShowVerificationPopup(true);
       }
     } catch (err: any) {
       setAlert({ type: 'error', message: err?.message || 'Terjadi kesalahan. Coba lagi.' });
@@ -384,6 +380,46 @@ export default function AuthPage() {
           © 2025 Ruang Newton — Platform Edukasi Fisika
         </p>
       </motion.div>
+
+      {/* Verification Modal */}
+      <AnimatePresence>
+        {showVerificationPopup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl relative"
+            >
+              <div className="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Mail className="w-10 h-10 text-teal-500" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 mb-3 font-heading">Verifikasi Email</h3>
+              <p className="text-slate-600 mb-8 text-sm leading-relaxed">
+                Kami telah mengirimkan link verifikasi ke <strong className="text-slate-800">{regForm.email}</strong>. 
+                Silakan cek kotak masuk atau folder spam Anda dan klik link tersebut untuk mengaktifkan akun.
+              </p>
+              <button 
+                 onClick={() => {
+                   setShowVerificationPopup(false);
+                   setTab('login');
+                   setLoginForm({ email: regForm.email, password: '' });
+                   setAlert({ type: 'success', message: 'Silakan login setelah Anda memverifikasi email Anda.' });
+                   setRegForm({ username: '', email: '', password: '', confirmPassword: '' });
+                 }}
+                 className="w-full py-3.5 bg-teal-400 hover:bg-teal-300 text-slate-900 font-bold rounded-xl shadow-lg shadow-teal-400/30 transition-all"
+              >
+                Selesai
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
