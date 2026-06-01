@@ -116,7 +116,21 @@ export default function ResultPage() {
         </button>
       </motion.div>
 
-      {results.length === 0 ? (
+      {loading && results.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-white/60 backdrop-blur-xl border border-slate-200 rounded-3xl p-12 text-center shadow-sm"
+        >
+          <div className="w-24 h-24 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <RefreshCw size={48} className="text-teal-400 animate-spin" />
+          </div>
+          <h3 className="text-2xl font-bold text-slate-800 mb-2 font-heading">Memuat Riwayat...</h3>
+          <p className="text-slate-500 mb-8 max-w-md mx-auto">
+            Mohon tunggu sebentar, sedang mengambil data riwayat kuis Anda dari server.
+          </p>
+        </motion.div>
+      ) : results.length === 0 ? (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
