@@ -2,7 +2,7 @@
 // ResultPage — Ruang Newton
 // Menampilkan 1 card rata-rata + 5 card per AF
 // ============================================================
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Trophy, Target, TrendingUp, RefreshCw,
@@ -70,6 +70,11 @@ export default function ResultPage() {
       setLoading(false);
     }
   };
+
+  // Selalu load data terbaru saat halaman Result dibuka
+  useEffect(() => {
+    refreshResults();
+  }, []);
 
   // Hitung statistik per AF (ambil nilai terbaru per AF)
   const latestPerAF: Record<string, TestResult> = {};
