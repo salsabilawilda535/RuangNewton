@@ -103,8 +103,7 @@ export default function TestPage() {
   }, [currentStage, quizStatus]);
 
   // Fungsi selesai stage
-  const handleFinishStage = useCallback(async (finalScore: number) => {
-    setQuizStatus('saving');
+  const handleFinishStage = useCallback((finalScore: number) => {
     const passed = finalScore >= PASS_SCORE;
     setLastResult({ score: finalScore, passed });
 
@@ -120,36 +119,30 @@ export default function TestPage() {
     setProgress(newProgress);
     saveProgress(newProgress);
 
-    // Simpan ke Supabase dengan timeout 20 detik
-    if (state.user?.id) {
-      try {
-        const resultData = {
-          user_id: state.user!.id,
-          af_level: `AF${currentStage.level}`,
-          score: finalScore,
-          passed: finalScore >= PASS_SCORE,
-        };
+    // Langsung pindah ke halaman hasil (Optimistic UI)
+    setQuizStatus('result');
 
-        const savePromise = saveTestResult(resultData);
-        const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) =>
-          setTimeout(() => reject(new Error('Timeout saving result')), 20000)
-        );
-        
-        const { data, error } = await Promise.race([savePromise, timeoutPromise]);
-        
+    // Simpan ke Supabase di background
+    if (state.user?.id) {
+      const resultData = {
+        user_id: state.user.id,
+        af_level: `AF${currentStage.level}`,
+        score: finalScore,
+        passed: finalScore >= PASS_SCORE,
+      };
+
+      saveTestResult(resultData).then(({ data, error }) => {
         if (error) {
           console.error('Supabase save error:', error);
           alert('Gagal menyimpan hasil kuis ke database: ' + (error.message || 'Unknown error'));
         } else if (data && data.length > 0) {
           dispatch({ type: 'ADD_RESULT', payload: data[0] as TestResult });
         }
-      } catch (err: any) {
-        console.error('Failed to save test result or timeout:', err);
-        alert('Gagal menyimpan hasil kuis (Timeout/Network): ' + (err?.message || ''));
-      }
+      }).catch(err => {
+        console.error('Failed to save test result:', err);
+        alert('Gagal menyimpan hasil kuis (Network): ' + (err?.message || ''));
+      });
     }
-
-    setQuizStatus('result');
   }, [progress, currentStage, currentStageIndex, state.user, dispatch]);
 
   // ── Auto-save on Unmount ───────────────────────────────
